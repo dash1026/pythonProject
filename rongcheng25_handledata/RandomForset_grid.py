@@ -44,6 +44,10 @@ y_test_day4 = pd.read_csv(file_path_y_test_day4)
 
 y_train = y_train.values.ravel()
 
+# 对数据进行预处理，将Nan的使用该列的下一个非nan代替
+X_train = X_train.fillna(method='bfill')
+X_test = X_test.fillna(method='bfill')
+
 # 设置参数网格
 param_grid = {
     'n_estimators': [100, 200, 300], # 树的数量

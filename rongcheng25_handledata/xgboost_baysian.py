@@ -41,6 +41,11 @@ y_test_day3 = pd.read_csv(file_path_y_test_day3)
 X_test_day4 = pd.read_csv(file_path_X_test_day4)
 y_test_day4 = pd.read_csv(file_path_y_test_day4)
 
+y_train = y_train.values.ravel()
+
+# 对数据进行预处理，将Nan的使用该列的下一个非nan代替
+X_train = X_train.fillna(method='bfill')
+X_test = X_test.fillna(method='bfill')
 
 # 定义XGBoost训练过程的评估函数
 def xgb_cv(n_estimators, max_depth, gamma, min_child_weight, subsample, colsample_bytree):
