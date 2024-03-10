@@ -1,14 +1,12 @@
-import pandas as pd
-from sklearn.feature_selection import RFE
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-from cmath import sqrt
-
+# 假设df是一个Pandas DataFrame，其中包含你的数据
+# 下面我将创建一个示例DataFrame，你应该用你自己的数据替代它
 import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
+
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_squared_error
+
 
 # 定义文件路径
 file_path_Xtrain = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\XTrain.csv'
@@ -48,6 +46,7 @@ y_train = y_train.values.ravel()
 X_train = X_train.fillna(method='bfill')
 X_test = X_test.fillna(method='bfill')
 
+
 # 初始化MinMaxScaler
 scaler = MinMaxScaler()
 
@@ -61,20 +60,33 @@ X_test_day2_scaled = scaler.transform(X_test_day2)
 X_test_day3_scaled = scaler.transform(X_test_day3)
 X_test_day4_scaled = scaler.transform(X_test_day4)
 
-# 现在，所有的数据集都已经按照X_train的尺度进行了归一化
+
+# 假设 X_train_scaled 和 X_test_scaled 是 numpy 数组
+# 将它们转换为 DataFrame
+X_train_df = pd.DataFrame(X_train_scaled)
+X_test_df = pd.DataFrame(X_test_scaled)
+
+# 现在使用 pandas.concat 来合并它们
+data = pd.concat([X_train_df, X_test_df], axis=0, ignore_index=True)
+
+# 计算相关系数矩阵
+corr_matrix = data.corr()
+# 绘制热图，并自定义坐标轴标签
+plt.figure(figsize=(10, 8))
 
 
-# 初始化基础模型
-base_model = RandomForestRegressor()
+ax = sns.heatmap(corr_matrix,
+                 cmap='coolwarm',
+                 annot=True,
+                 xticklabels=X_train.columns,
+                 yticklabels=X_train.columns)
 
-# RFE
-rfe = RFE(estimator=base_model, n_features_to_select=1, step=1)
-rfe.fit(X_train_scaled, y_train)
+# 设置坐标轴标签的字体大小
+ax.set_xticklabels(ax.get_xticklabels(), rotation=45, horizontalalignment='right', fontsize='x-large')
+ax.set_yticklabels(ax.get_yticklabels(), fontsize='x-large')
 
-# 查看特征的排名
-feature_ranking = rfe.ranking_
-print("特征排名：", feature_ranking)
+# 设置坐标轴的名称
+plt.xlabel('Feature', fontsize='x-large')
+plt.ylabel('Feature', fontsize='x-large')
 
-# 映射特征排名到特征名称
-ranking_dict = dict(sorted(zip(X_train.columns, rfe.ranking_), key=lambda x: x[1]))
-print("特征排名（名称）：", ranking_dict)
+plt.show()
