@@ -83,12 +83,25 @@ features = pd.DataFrame({
 
 print(features)
 
-# 假设我们决定只保留重要性前80%的特征
-important_features = features[features['Importance'] > features['Importance'].quantile(0.2)]
+# # 假设我们决定只保留重要性前7的特征
+# selected_features_names = features.head(8)
+# 定义你想要保留的特征列表
+# selected_features_names = ['P', 'H', 'WS', 'PT', 'RH', 'WD', 'TShear', 'WShear']
+# selected_features_names = ['P', 'H', 'WS', 'PT', 'RH', 'WD', 'TShear', 'T']
+# selected_features_names = ['P', 'H', 'WS', 'PT', 'RH', 'WD', 'TShear']
+# selected_features_names = ['H', 'WS', 'PT', 'RH', 'WD', 'TShear']
+# selected_features_names = ['P', 'WS', 'PT', 'RH', 'WD', 'TShear']
+selected_features_names = ['P', 'H', 'WS', 'PT', 'RH', 'WD', 'T', 'TShear']
+
+# 从原始特征DataFrame中选择这些特征
+# important_features = X_train[selected_features_names]
 
 # 更新训练和测试数据集
-X_train_optimized = X_train[important_features['Feature']]
-X_test_optimized = X_test[important_features['Feature']]
+# X_train_optimized = X_train[important_features['Feature']]
+# X_test_optimized = X_test[important_features['Feature']]
+X_train_optimized = X_train[selected_features_names]
+X_test_optimized = X_test[selected_features_names]
+
 
 # 可以选择再次使用随机森林或其他模型进行训练，以评估特征优化的效果
 rf_optimized = RandomForestRegressor(n_estimators=100, random_state=42)
