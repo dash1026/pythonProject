@@ -89,9 +89,9 @@ print(features)
 # selected_features_names = ['P', 'H', 'WS', 'PT', 'RH', 'WD', 'TShear', 'WShear']
 # selected_features_names = ['P', 'H', 'WS', 'PT', 'RH', 'WD', 'TShear', 'T']
 # selected_features_names = ['P', 'H', 'WS', 'PT', 'RH', 'WD', 'TShear']
-# selected_features_names = ['H', 'WS', 'PT', 'RH', 'WD', 'TShear']
 # selected_features_names = ['P', 'WS', 'PT', 'RH', 'WD', 'TShear']
-selected_features_names = ['P', 'H', 'WS', 'PT', 'RH', 'WD', 'T', 'TShear']
+# selected_features_names = ['P', 'H', 'WS', 'PT', 'RH', 'WD', 'T', 'TShear']
+selected_features_names = ['H', 'WS', 'PT', 'RH', 'WD', 'TShear']
 
 # 从原始特征DataFrame中选择这些特征
 # important_features = X_train[selected_features_names]

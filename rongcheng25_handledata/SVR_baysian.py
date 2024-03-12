@@ -24,19 +24,20 @@ file_path_y_test_day3  = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\YTe
 file_path_X_test_day4 = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\XTest_Value_day004.csv'
 file_path_y_test_day4  = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\YTest_Value_day004.csv'
 
+selected_features_names = ['H', 'WS', 'PT', 'RH', 'WD', 'TShear']
 # 使用pandas的read_csv函数读取数据
-X_train = pd.read_csv(file_path_Xtrain)
+X_train = pd.read_csv(file_path_Xtrain)[selected_features_names]
 y_train = pd.read_csv(file_path_ytrain)
-X_test = pd.read_csv(file_path_Xtest)
+X_test = pd.read_csv(file_path_Xtest)[selected_features_names]
 y_test = pd.read_csv(file_path_ytest)
 
-X_test_day1 = pd.read_csv(file_path_X_test_day1)
+X_test_day1 = pd.read_csv(file_path_X_test_day1)[selected_features_names]
 y_test_day1 = pd.read_csv(file_path_y_test_day1)
-X_test_day2 = pd.read_csv(file_path_X_test_day2)
+X_test_day2 = pd.read_csv(file_path_X_test_day2)[selected_features_names]
 y_test_day2 = pd.read_csv(file_path_y_test_day2)
-X_test_day3 = pd.read_csv(file_path_X_test_day3)
+X_test_day3 = pd.read_csv(file_path_X_test_day3)[selected_features_names]
 y_test_day3 = pd.read_csv(file_path_y_test_day3)
-X_test_day4 = pd.read_csv(file_path_X_test_day4)
+X_test_day4 = pd.read_csv(file_path_X_test_day4)[selected_features_names]
 y_test_day4 = pd.read_csv(file_path_y_test_day4)
 
 y_train = y_train.values.ravel()
@@ -49,7 +50,14 @@ X_test = X_test.fillna(method='bfill')
 scaler = MinMaxScaler()
 
 # 使用X_train拟合scaler，然后转换X_train
+
 X_train_scaled = scaler.fit_transform(X_train)
+
+
+# 更新训练和测试数据集
+
+X_train_optimized = X_train[selected_features_names]
+X_test_optimized = X_test[selected_features_names]
 
 # 使用相同的scaler转换所有测试集
 X_test_scaled = scaler.transform(X_test)
