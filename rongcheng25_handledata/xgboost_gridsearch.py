@@ -52,15 +52,15 @@ xg_reg = xgb.XGBRegressor(objective ='reg:squarederror')
 
 # 定义参数网格
 param_grid = {
-    'n_estimators': [100, 200, 300],
-    'learning_rate': [0.01, 0.1, 0.2],
-    'max_depth': [4, 6, 8],
+    'n_estimators': [100, 150],
+    'learning_rate': [0.01, 0.02, 0.021, 0.022, 0.023],
+    'max_depth': [3, 4, 5],
     'colsample_bytree': [0.3, 0.7, 1.0],
-    'subsample': [0.5, 0.7, 1.0]
+    'subsample': [0.5, 0.7, 0.71, 0.72, 0.73, 0.8]
 }
 
 # 设置网格搜索
-grid_search = GridSearchCV(estimator=xg_reg, param_grid=param_grid, scoring='neg_mean_squared_error', cv=3, verbose=2, n_jobs=-1)
+grid_search = GridSearchCV(estimator=xg_reg, param_grid=param_grid, scoring='neg_mean_squared_error', cv=5, verbose=2, n_jobs=-1)
 
 # 训练模型
 grid_search.fit(X_train, y_train)

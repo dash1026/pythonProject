@@ -50,10 +50,11 @@ X_train = X_train.fillna(method='bfill')
 X_test = X_test.fillna(method='bfill')
 
 # 定义XGBoost训练过程的评估函数
-def xgb_cv(n_estimators, max_depth, gamma, min_child_weight, subsample, colsample_bytree):
+def xgb_cv(n_estimators, max_depth, gamma, min_child_weight, subsample, colsample_bytree, learning_rate):
     # 模型参数
     params = {
         'n_estimators': int(n_estimators),
+        'learning_rate': learning_rate,
         'max_depth': int(max_depth),
         'gamma': gamma,
         'min_child_weight': min_child_weight,
@@ -70,6 +71,7 @@ def xgb_cv(n_estimators, max_depth, gamma, min_child_weight, subsample, colsampl
 # 使用贝叶斯优化库定义超参数空间
 pbounds = {
     'n_estimators': (100, 1000),
+    'learning_rate': (0.01, 0.05),
     'max_depth': (3, 10),
     'gamma': (0, 1),
     'min_child_weight': (0, 5),

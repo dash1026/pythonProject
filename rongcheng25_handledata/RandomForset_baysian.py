@@ -2,10 +2,8 @@ from math import sqrt
 
 import pandas as pd
 from bayes_opt import BayesianOptimization
-from sklearn.model_selection import GridSearchCV, cross_val_score
+from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.datasets import load_boston
-from sklearn.model_selection import train_test_split
 
 # 定义文件路径
 file_path_Xtrain = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\XTrain.csv'
@@ -13,16 +11,14 @@ file_path_ytrain = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\YTrain.cs
 file_path_Xtest = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\XTest.csv'
 file_path_ytest = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\YTest.csv'
 
-
-
 file_path_X_test_day1 = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\XTest_Value_day001.csv'
-file_path_y_test_day1  = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\YTest_Value_day001.csv'
+file_path_y_test_day1 = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\YTest_Value_day001.csv'
 file_path_X_test_day2 = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\XTest_Value_day002.csv'
-file_path_y_test_day2  = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\YTest_Value_day002.csv'
+file_path_y_test_day2 = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\YTest_Value_day002.csv'
 file_path_X_test_day3 = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\XTest_Value_day003.csv'
-file_path_y_test_day3  = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\YTest_Value_day003.csv'
+file_path_y_test_day3 = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\YTest_Value_day003.csv'
 file_path_X_test_day4 = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\XTest_Value_day004.csv'
-file_path_y_test_day4  = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\YTest_Value_day004.csv'
+file_path_y_test_day4 = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\YTest_Value_day004.csv'
 
 selected_features_names = ['H', 'WS', 'PT', 'RH', 'WD', 'TShear']
 # 使用pandas的read_csv函数读取数据
@@ -52,23 +48,24 @@ def rf_cv(n_estimators, min_samples_split, max_features, max_depth):
     estimator = RandomForestRegressor(
         n_estimators=int(n_estimators),
         min_samples_split=int(min_samples_split),
-        max_features=min(max_features, 0.999), # 因为max_features是比例
+        max_features=min(max_features, 0.999),  # 因为max_features是比例
         max_depth=int(max_depth),
-        random_state=2
+        random_state=42
     )
     cval = cross_val_score(estimator, X_train, y_train, scoring='neg_mean_squared_error', cv=5)
     return cval.mean()
 
+
 # 定义贝叶斯优化的参数空间
+
 params = {
-    'n_estimators': (10, 250),
+    'n_estimators': (25, 300),
     'min_samples_split': (2, 25),
     'max_features': (0.1, 0.999),
     'max_depth': (5, 50)
 }
-
 # 使用贝叶斯优化
-optimizer = BayesianOptimization(f=rf_cv, pbounds=params, random_state=1)
+optimizer = BayesianOptimization(f=rf_cv, pbounds=params, random_state=42)
 optimizer.maximize(n_iter=25, init_points=5)
 
 # 打印最优参数
@@ -113,8 +110,6 @@ mse_day2 = mean_squared_error(y_test_day2, y_pred_day2)
 mse_day3 = mean_squared_error(y_test_day3, y_pred_day3)
 mse_day4 = mean_squared_error(y_test_day4, y_pred_day4)
 
-
-
 # 将y_pred转换为DataFrame
 df_pred_day1 = pd.DataFrame(y_pred_day1, columns=['Predicted Values'])
 df_pred_day2 = pd.DataFrame(y_pred_day2, columns=['Predicted Values'])
@@ -134,9 +129,7 @@ rmse_day2 = sqrt(mse_day2)
 rmse_day3 = sqrt(mse_day3)
 rmse_day4 = sqrt(mse_day4)
 
-
 print(f"Test RMSEday1: {rmse_day1}")
 print(f"Test RMSEday1: {rmse_day2}")
 print(f"Test RMSEday1: {rmse_day3}")
 print(f"Test RMSEday1: {rmse_day4}")
-

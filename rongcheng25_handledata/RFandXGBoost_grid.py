@@ -1,12 +1,13 @@
+import os
 from math import sqrt
 
-import pandas as pd
-from sklearn.datasets import make_regression
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.svm import SVR
-from sklearn.metrics import mean_squared_error
 import numpy as np
+import pandas as pd
+import xgboost as xgb
+
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import cross_val_score, train_test_split, GridSearchCV
+
 
 # 定义文件路径
 file_path_Xtrain = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\XTrain.csv'
@@ -24,6 +25,7 @@ file_path_X_test_day4 = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\XTes
 file_path_y_test_day4 = 'D:\\data\\荣成\荣成25km\\rongchengdata_python\\YTest_Value_day004.csv'
 
 selected_features_names = ['H', 'WS', 'PT', 'RH', 'WD', 'TShear']
+
 # 使用pandas的read_csv函数读取数据
 X_train = pd.read_csv(file_path_Xtrain)[selected_features_names]
 y_train = pd.read_csv(file_path_ytrain)
@@ -45,48 +47,26 @@ y_train = y_train.values.ravel()
 X_train = X_train.fillna(method='bfill')
 X_test = X_test.fillna(method='bfill')
 
-
-# 初始化MinMaxScaler,对数据进行归一化处理
-scaler = MinMaxScaler()
-
-# 使用X_train拟合scaler，然后转换X_train
-X_train_scaled = scaler.fit_transform(X_train)
-
-# 使用相同的scaler转换所有测试集
-X_test_scaled = scaler.transform(X_test)
-X_test_day1_scaled = scaler.transform(X_test_day1)
-X_test_day2_scaled = scaler.transform(X_test_day2)
-X_test_day3_scaled = scaler.transform(X_test_day3)
-X_test_day4_scaled = scaler.transform(X_test_day4)
-
+# 定义模型
+xg_reg = xgb.XGBRegressor(objective ='reg:squarederror')
 
 # 定义参数网格
 param_grid = {
-    'C': [0.1, 1, 1.5, 2, 10, 100],  # 正则化参数
-    'gamma': ['scale', 'auto'],  # 核函数参数
-    'epsilon': [0.01, 0.1, 0.2, 0.5, 1],  # SVR中的epsilon参数
-    'kernel': ['rbf'],
+    'n_estimators': [100, 128],
+    'learning_rate': [0.01, 0.02, 0.021, 0.022, 0.023],
+    'max_depth': [3, 4, 5],
+    'colsample_bytree': [0.3, 0.7, 1.0],
+    'subsample': [0.5, 0.7, 0.71, 0.72, 0.73, 0.8]
 }
 
-# 创建SVR实例
-svr = SVR()
+# 设置网格搜索
+grid_search = GridSearchCV(estimator=xg_reg, param_grid=param_grid, scoring='neg_mean_squared_error', cv=3, verbose=2, n_jobs=-1)
 
-# 使用网格搜索进行参数优化
-grid_search = GridSearchCV(svr, param_grid, cv=5, scoring='neg_mean_squared_error', verbose=2)
+# 训练模型
 grid_search.fit(X_train, y_train)
 
-# 查看最优参数和最优分数
-print("Best Parameters:", grid_search.best_params_)
-print("Best Score (MSE):", -grid_search.best_score_)
-
-# 使用最优参数的模型进行预测
-best_svr = grid_search.best_estimator_
-y_pred = best_svr.predict(X_test)
-
-# 计算和打印MSE和RMSE
-mse = mean_squared_error(y_test, y_pred)
-rmse = np.sqrt(mse)
-print(f"MSE: {mse}, RMSE: {rmse}")
+# 打印最佳参数
+print("最佳参数:", grid_search.best_params_)
 
 # 使用最佳参数的模型进行预测
 best_grid = grid_search.best_estimator_
@@ -112,11 +92,14 @@ mse_day2 = mean_squared_error(y_test_day2, y_pred_day2)
 mse_day3 = mean_squared_error(y_test_day3, y_pred_day3)
 mse_day4 = mean_squared_error(y_test_day4, y_pred_day4)
 
+
+
 # 将y_pred转换为DataFrame
 df_pred_day1 = pd.DataFrame(y_pred_day1, columns=['Predicted Values'])
 df_pred_day2 = pd.DataFrame(y_pred_day2, columns=['Predicted Values'])
 df_pred_day3 = pd.DataFrame(y_pred_day3, columns=['Predicted Values'])
 df_pred_day4 = pd.DataFrame(y_pred_day4, columns=['Predicted Values'])
+
 # 将DataFrame保存为CSV文件
 df_pred_day1.to_csv('predicted_values1.csv', index=False)
 df_pred_day2.to_csv('predicted_values2.csv', index=False)
@@ -137,3 +120,77 @@ print(f"Test RMSE: {rmse_day1}")
 print(f"Test RMSE: {rmse_day2}")
 print(f"Test RMSE: {rmse_day3}")
 print(f"Test RMSE: {rmse_day4}")
+
+from sklearn.ensemble import RandomForestRegressor, StackingRegressor
+from sklearn.linear_model import LinearRegression  # 作为元模型
+
+
+# 随机森林的参数网格
+param_grid_rf = {
+    'n_estimators': [100, 200, 300],
+    'max_depth': [10, 20, 30],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
+}
+
+# 使用GridSearchCV优化随机森林参数
+grid_search_rf = GridSearchCV(estimator=RandomForestRegressor(),
+                              param_grid=param_grid_rf,
+                              scoring='neg_mean_squared_error',
+                              cv=5,
+                              verbose=2,
+                              n_jobs=-1)
+grid_search_rf.fit(X_train, y_train)
+
+# 打印最佳参数
+print("随机森林最佳参数:", grid_search_rf.best_params_)
+
+# 获取最佳随机森林模型
+best_rf = grid_search_rf.best_estimator_
+
+# 定义堆叠模型，包括优化后的随机森林和XGBoost
+stacked_model = StackingRegressor(
+    estimators=[
+        ('xgb', best_grid),  # 使用之前优化的XGBoost模型
+        ('rf', best_rf)      # 使用优化的随机森林模型
+    ],
+    final_estimator=LinearRegression(),  # 使用线性回归作为元模型
+    cv=5  # 使用5折交叉验证
+)
+# 训练堆叠模型
+stacked_model.fit(X_train, y_train)
+
+# 使用堆叠模型进行预测和评估
+stacked_predictions = stacked_model.predict(X_test)
+stacked_rmse = np.sqrt(mean_squared_error(y_test, stacked_predictions))
+print(f"堆叠模型在测试集上的RMSE: {stacked_rmse}")
+
+
+# 对不同时间段的数据使用堆叠模型进行预测
+stacked_pred_day1 = stacked_model.predict(X_test_day1)
+stacked_pred_day2 = stacked_model.predict(X_test_day2)
+stacked_pred_day3 = stacked_model.predict(X_test_day3)
+stacked_pred_day4 = stacked_model.predict(X_test_day4)
+
+# 评估各时间段堆叠模型的性能
+stacked_rmse_day1 = np.sqrt(mean_squared_error(y_test_day1, stacked_pred_day1))
+stacked_rmse_day2 = np.sqrt(mean_squared_error(y_test_day2, stacked_pred_day2))
+stacked_rmse_day3 = np.sqrt(mean_squared_error(y_test_day3, stacked_pred_day3))
+stacked_rmse_day4 = np.sqrt(mean_squared_error(y_test_day4, stacked_pred_day4))
+
+print(f"堆叠模型在第一天的测试集上的RMSE: {stacked_rmse_day1}")
+print(f"堆叠模型在第二天的测试集上的RMSE: {stacked_rmse_day2}")
+print(f"堆叠模型在第三天的测试集上的RMSE: {stacked_rmse_day3}")
+print(f"堆叠模型在第四天的测试集上的RMSE: {stacked_rmse_day4}")
+
+# 将堆叠模型的预测结果转换为DataFrames
+df_stacked_pred_day1 = pd.DataFrame(stacked_pred_day1, columns=['Stacked Predictions Day 1'])
+df_stacked_pred_day2 = pd.DataFrame(stacked_pred_day2, columns=['Stacked Predictions Day 2'])
+df_stacked_pred_day3 = pd.DataFrame(stacked_pred_day3, columns=['Stacked Predictions Day 3'])
+df_stacked_pred_day4 = pd.DataFrame(stacked_pred_day4, columns=['Stacked Predictions Day 4'])
+
+# 将DataFrames保存为CSV文件
+df_stacked_pred_day1.to_csv('stacked_predictions_day1.csv', index=False)
+df_stacked_pred_day2.to_csv('stacked_predictions_day2.csv', index=False)
+df_stacked_pred_day3.to_csv('stacked_predictions_day3.csv', index=False)
+df_stacked_pred_day4.to_csv('stacked_predictions_day4.csv', index=False)

@@ -52,18 +52,17 @@ X_test = X_test.fillna(method='bfill')
 
 # 设置参数网格
 param_grid = {
-    'n_estimators': [100, 200, 300], # 树的数量
-    'max_depth': [None, 10, 20, 30], # 最大深度
-    'min_samples_split': [2, 5, 10], # 分裂内部节点所需的最小样本数
-    'min_samples_leaf': [1, 2, 4], # 在叶节点处需要的最小样本数
-    'bootstrap': [True, False] # 是否使用bootstrap样本
+    'n_estimators': [100, 200],  # 树的数量
+    'max_depth': [None, 10, 20, 30],  # 最大深度
+    'max_features': ['sqrt', 'log2', 'auto'],  # 在寻找最佳分割时考虑的最大特征数量
+    'min_samples_leaf': [1, 2, 4],  # 在叶节点处需要的最小样本数
 }
 
 # 创建随机森林模型
 rf = RandomForestRegressor()
 
 # 使用网格搜索
-grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=3, scoring='neg_mean_squared_error', verbose=2, n_jobs=-1)
+grid_search = GridSearchCV(estimator=rf, param_grid=param_grid, cv=5, scoring='neg_mean_squared_error', verbose=2, n_jobs=-1)
 
 # 训练模型
 grid_search.fit(X_train, y_train)

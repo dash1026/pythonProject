@@ -4,6 +4,7 @@ import pandas as pd
 from scipy.stats import expon, reciprocal
 from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVR
 from sklearn.metrics import mean_squared_error
 import numpy as np
@@ -45,6 +46,19 @@ y_train = y_train.values.ravel()
 X_train = X_train.fillna(method='bfill')
 X_test = X_test.fillna(method='bfill')
 
+# 初始化MinMaxScaler,对数据进行归一化处理
+scaler = MinMaxScaler()
+
+# 使用X_train拟合scaler，然后转换X_train
+X_train_scaled = scaler.fit_transform(X_train)
+
+# 使用相同的scaler转换所有测试集
+X_test_scaled = scaler.transform(X_test)
+X_test_day1_scaled = scaler.transform(X_test_day1)
+X_test_day2_scaled = scaler.transform(X_test_day2)
+X_test_day3_scaled = scaler.transform(X_test_day3)
+X_test_day4_scaled = scaler.transform(X_test_day4)
+
 # 定义参数分布
 param_distributions = {
     'C': reciprocal(0.1, 100),
@@ -53,14 +67,14 @@ param_distributions = {
 }
 
 rnd_search_cv = RandomizedSearchCV(SVR(), param_distributions, n_iter=10, verbose=2, cv=5, random_state=42)
-rnd_search_cv.fit(X_train, y_train)
+rnd_search_cv.fit(X_train_scaled, y_train)
 
 
 print("Best parameters found: ", rnd_search_cv.best_params_)
 print("Best estimator score: ", rnd_search_cv.best_score_)
 
 best_model = rnd_search_cv.best_estimator_
-test_score = best_model.score(X_test, y_test)
+test_score = best_model.score(X_test_scaled, y_test)
 print("Test set score: ", test_score)
 
 
@@ -68,7 +82,7 @@ print("Test set score: ", test_score)
 
 # 使用最优参数的模型进行预测
 best_svr = rnd_search_cv.best_estimator_
-y_pred = best_svr.predict(X_test)
+y_pred = best_svr.predict(X_test_scaled)
 
 # 计算和打印MSE和RMSE
 mse = mean_squared_error(y_test, y_pred)
@@ -77,7 +91,7 @@ print(f"MSE: {mse}, RMSE: {rmse}")
 
 # 使用最佳参数的模型进行预测
 best_grid = rnd_search_cv.best_estimator_
-predictions = best_grid.predict(X_test)
+predictions = best_grid.predict(X_test_scaled)
 
 # 评估预测性能
 mse = mean_squared_error(y_test, predictions)
@@ -86,11 +100,11 @@ rmse = np.sqrt(mse)
 print(f"测试集上的RMSE: {rmse}")
 
 # 在测试集上进行预测
-y_pred = best_grid.predict(X_test)
-y_pred_day1 = best_grid.predict(X_test_day1)
-y_pred_day2 = best_grid.predict(X_test_day2)
-y_pred_day3 = best_grid.predict(X_test_day3)
-y_pred_day4 = best_grid.predict(X_test_day4)
+y_pred = best_grid.predict(X_test_scaled)
+y_pred_day1 = best_grid.predict(X_test_day1_scaled)
+y_pred_day2 = best_grid.predict(X_test_day2_scaled)
+y_pred_day3 = best_grid.predict(X_test_day3_scaled)
+y_pred_day4 = best_grid.predict(X_test_day4_scaled)
 
 # 评估模型性能
 mse = mean_squared_error(y_test, y_pred)

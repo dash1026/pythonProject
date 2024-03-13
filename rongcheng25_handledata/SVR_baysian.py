@@ -71,7 +71,7 @@ X_test_day4_scaled = scaler.transform(X_test_day4)
 pbounds = {
     'C': (1, 100),
     'epsilon': (0.01, 1),
-    'gamma': (0.01, 1)
+    'gamma': (0.01, 10)
 }
 
 # 定义优化的目标函数
@@ -90,8 +90,8 @@ optimizer = BayesianOptimization(
 
 # 执行优化
 optimizer.maximize(
-    init_points=3,
-    n_iter=67,
+    init_points=5,
+    n_iter=128,
 )
 
 
