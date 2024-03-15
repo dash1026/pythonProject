@@ -4,8 +4,9 @@ from math import sqrt
 import numpy as np
 import pandas as pd
 import xgboost as xgb
+from scipy.stats import pearsonr
 
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.model_selection import cross_val_score, train_test_split, GridSearchCV
 
 
@@ -42,6 +43,13 @@ X_test_day4 = pd.read_csv(file_path_X_test_day4)[selected_features_names]
 y_test_day4 = pd.read_csv(file_path_y_test_day4)
 
 y_train = y_train.values.ravel()
+# 使用.ravel()方法将y_test转换为一维数组
+y_test = y_test.values.ravel()
+y_test_day1 = y_test_day1.values.ravel()
+y_test_day2 = y_test_day2.values.ravel()
+y_test_day3 = y_test_day3.values.ravel()
+y_test_day4 = y_test_day4.values.ravel()
+
 
 # 对数据进行预处理，将Nan的使用该列的下一个非nan代替
 X_train = X_train.fillna(method='bfill')
@@ -53,10 +61,12 @@ xg_reg = xgb.XGBRegressor(objective ='reg:squarederror')
 # 定义参数网格
 param_grid = {
     'n_estimators': [100, 150],
-    'learning_rate': [0.01, 0.02, 0.021, 0.022, 0.023],
+    'learning_rate': [0.01, 0.02, 0.03, 0.04],
+    'gamma': [0, 0.1, 0.2, 0.3, 0.4],  # 添加 gamma 参数
     'max_depth': [3, 4, 5],
+    'min_child_weight': [2, 3, 4, 5],
     'colsample_bytree': [0.3, 0.7, 1.0],
-    'subsample': [0.5, 0.7, 0.71, 0.72, 0.73, 0.8]
+    'subsample': [0.5, 0.7, 0.8]
 }
 
 # 设置网格搜索
@@ -100,13 +110,26 @@ df_pred_day2 = pd.DataFrame(y_pred_day2, columns=['Predicted Values'])
 df_pred_day3 = pd.DataFrame(y_pred_day3, columns=['Predicted Values'])
 df_pred_day4 = pd.DataFrame(y_pred_day4, columns=['Predicted Values'])
 # 将DataFrame保存为CSV文件
-df_pred_day1.to_csv('predicted_values1.csv', index=False)
-df_pred_day2.to_csv('predicted_values2.csv', index=False)
-df_pred_day3.to_csv('predicted_values3.csv', index=False)
-df_pred_day4.to_csv('predicted_values4.csv', index=False)
 
-print("预测结果已经保存到predicted_values.csv")
+import os
 
+# 定义目录路径
+output_dir = 'rongcheng_outputdata'
+
+# 检查目录是否存在，如果不存在，则创建
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+
+# 在指定的目录下保存CSV文件
+df_pred_day1.to_csv(os.path.join(output_dir, 'GSXG_predicted_values1.csv'), index=False)
+df_pred_day2.to_csv(os.path.join(output_dir, 'GSXG_predicted_values2.csv'), index=False)
+df_pred_day3.to_csv(os.path.join(output_dir, 'GSXG_predicted_values3.csv'), index=False)
+df_pred_day4.to_csv(os.path.join(output_dir, 'GSXG_predicted_values4.csv'), index=False)
+
+print("预测结果已经保存到指定的目录中。")
+
+
+# RMSE
 rmse = sqrt(mse)
 rmse_day1 = sqrt(mse_day1)
 rmse_day2 = sqrt(mse_day2)
@@ -114,28 +137,38 @@ rmse_day3 = sqrt(mse_day3)
 rmse_day4 = sqrt(mse_day4)
 
 
+# MAD
+mad = mean_absolute_error(y_test, y_pred)
+mad_day1 = mean_absolute_error(y_test_day1, y_pred_day1)
+mad_day2 = mean_absolute_error(y_test_day2, y_pred_day2)
+mad_day3 = mean_absolute_error(y_test_day3, y_pred_day3)
+mad_day4 = mean_absolute_error(y_test_day4, y_pred_day4)
 
-# # 使用numpy的corrcoef函数计算相关系数矩阵
-# corr_matrix_day1 = np.corrcoef(y_test_day1, y_pred_day1)
-# corr_matrix_day2 = np.corrcoef(y_test_day2, y_pred_day2)
-# corr_matrix_day3 = np.corrcoef(y_test_day3, y_pred_day3)
-# corr_matrix_day4 = np.corrcoef(y_test_day4, y_pred_day4)
-#
-# # 相关系数矩阵中的[0, 1]或[1, 0]元素是y_test和y_pred之间的相关系数
-# correlation1 = corr_matrix_day1[0, 1]
-# correlation2 = corr_matrix_day2[0, 1]
-# correlation3 = corr_matrix_day3[0, 1]
-# correlation4 = corr_matrix_day4[0, 1]
-#
-# print(f"y_test和y_pred之间的相关性为: {correlation1}")
-# print(f"y_test和y_pred之间的相关性为: {correlation2}")
-# print(f"y_test和y_pred之间的相关性为: {correlation3}")
-# print(f"y_test和y_pred之间的相关性为: {correlation4}")
+# Pearson correlation coefficient
+correlation, _ = pearsonr(y_test, y_pred)
+correlation_day1, _ = pearsonr(y_test_day1, y_pred_day1)
+correlation_day2, _ = pearsonr(y_test_day2, y_pred_day2)
+correlation_day3, _ = pearsonr(y_test_day3, y_pred_day3)
+correlation_day4, _ = pearsonr(y_test_day4, y_pred_day4)
 
+# Print the results
+# 输出统计量，保留四位小数
+print(f"all Test RMSE: {rmse:.4f}")
+print(f"day1 Test RMSE: {rmse_day1:.4f}")
+print(f"day2 Test RMSE: {rmse_day2:.4f}")
+print(f"day3 Test RMSE: {rmse_day3:.4f}")
+print(f"day4 Test RMSE: {rmse_day4:.4f}")
 
-print(f"Test RMSE: {rmse}")
-print(f"Test RMSE: {rmse_day1}")
-print(f"Test RMSE: {rmse_day2}")
-print(f"Test RMSE: {rmse_day3}")
-print(f"Test RMSE: {rmse_day4}")
+# ...
 
+print(f"Test MAD: {mad:.4f}")
+print(f"Day 1 MAD: {mad_day1:.4f}")
+print(f"Day 2 MAD: {mad_day2:.4f}")
+print(f"Day 3 MAD: {mad_day3:.4f}")
+print(f"Day 4 MAD: {mad_day4:.4f}")
+
+print(f"Test Pearson Correlation: {correlation:.4f}")
+print(f"Day 1 Pearson Correlation: {correlation_day1:.4f}")
+print(f"Day 2 Pearson Correlation: {correlation_day2:.4f}")
+print(f"Day 3 Pearson Correlation: {correlation_day3:.4f}")
+print(f"Day 4 Pearson Correlation: {correlation_day4:.4f}")
