@@ -1,26 +1,23 @@
 import pandas as pd
 import xgboost as xgb
-from skimage.exposure import cumulative_distribution
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from scipy.stats import pearsonr
 from math import sqrt
+import numpy as np
 import matplotlib.pyplot as plt
 
 
 # 定义文件路径
-file_path_Xtrain = 'D:\\data\\荣成\\荣成25km\\rongchengdata_python\\XTrain.csv'
-file_path_ytrain = 'D:\\data\\荣成\\荣成25km\\rongchengdata_python\\YTrain.csv'
-file_path_Xtest = 'D:\\data\\荣成\\荣成25km\\rongchengdata_python\\XTest.csv'
-file_path_ytest = 'D:\\data\\荣成\\荣成25km\\rongchengdata_python\\YTest.csv'
+# 定义文件路径
+file_path_Xtrain = 'D:\data\台州\Program\Taizhou_pythondata\\night\\XTrain.csv'
+file_path_ytrain = 'D:\data\台州\Program\Taizhou_pythondata\\night\\YTrain.csv'
+file_path_Xtest = 'D:\data\台州\Program\Taizhou_pythondata\\night\\XTest.csv'
+file_path_ytest = 'D:\data\台州\Program\Taizhou_pythondata\\night\\YTest.csv'
 
-file_path_X_test_day1 = 'D:\\data\\荣成\\荣成25km\\rongchengdata_python\\XTest_Value_day001.csv'
-file_path_y_test_day1 = 'D:\\data\\荣成\\荣成25km\\rongchengdata_python\\YTest_Value_day001.csv'
-file_path_X_test_day2 = 'D:\\data\\荣成\\荣成25km\\rongchengdata_python\\XTest_Value_day002.csv'
-file_path_y_test_day2 = 'D:\\data\\荣成\\荣成25km\\rongchengdata_python\\YTest_Value_day002.csv'
-file_path_X_test_day3 = 'D:\\data\\荣成\\荣成25km\\rongchengdata_python\\XTest_Value_day003.csv'
-file_path_y_test_day3 = 'D:\\data\\荣成\\荣成25km\\rongchengdata_python\\YTest_Value_day003.csv'
-file_path_X_test_day4 = 'D:\\data\\荣成\\荣成25km\\rongchengdata_python\\XTest_Value_day004.csv'
-file_path_y_test_day4 = 'D:\\data\\荣成\\荣成25km\\rongchengdata_python\\YTest_Value_day004.csv'
+file_path_X_test_day1 = 'D:\data\台州\Program\Taizhou_pythondata\\night\\XTest_Value_day001.csv'
+file_path_y_test_day1 = 'D:\data\台州\Program\Taizhou_pythondata\\night\\YTest_Value_day001.csv'
+file_path_X_test_day2 = 'D:\data\台州\Program\Taizhou_pythondata\\night\XTest_Value_day002.csv'
+file_path_y_test_day2 = 'D:\data\台州\Program\Taizhou_pythondata\\night\\YTest_Value_day002.csv'
 
 selected_features_names = ['H', 'WS', 'PT', 'RH', 'WD', 'TShear']
 
@@ -34,10 +31,6 @@ X_test_day1 = pd.read_csv(file_path_X_test_day1)[selected_features_names]
 y_test_day1 = pd.read_csv(file_path_y_test_day1)
 X_test_day2 = pd.read_csv(file_path_X_test_day2)[selected_features_names]
 y_test_day2 = pd.read_csv(file_path_y_test_day2)
-X_test_day3 = pd.read_csv(file_path_X_test_day3)[selected_features_names]
-y_test_day3 = pd.read_csv(file_path_y_test_day3)
-X_test_day4 = pd.read_csv(file_path_X_test_day4)[selected_features_names]
-y_test_day4 = pd.read_csv(file_path_y_test_day4)
 
 y_train = y_train.values.ravel()
 # 使用.ravel()方法将y_test转换为一维数组
@@ -45,8 +38,6 @@ y_train = y_train.values.ravel()
 y_test = y_test.values.ravel()
 y_test_day1 = y_test_day1.values.ravel()
 y_test_day2 = y_test_day2.values.ravel()
-y_test_day3 = y_test_day3.values.ravel()
-y_test_day4 = y_test_day4.values.ravel()
 
 # 对数据进行预处理，将Nan的使用该列的下一个非nan代替
 X_train = X_train.fillna(method='bfill')
@@ -77,8 +68,7 @@ model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 y_pred_day1 = model.predict(X_test_day1)
 y_pred_day2 = model.predict(X_test_day2)
-y_pred_day3 = model.predict(X_test_day3)
-y_pred_day4 = model.predict(X_test_day4)
+
 
 
 df_y_pred = pd.DataFrame(y_pred, columns=['Predicted Values'])
@@ -136,10 +126,7 @@ y_pred_values_day1 = y_pred_day1 # 第一天的预测值列表
 y_true_values_day1 = y_test_day1  # 第一天的实际值列表
 y_pred_values_day2 = y_pred_day2 # 第一天的预测值列表
 y_true_values_day2 = y_test_day2  # 第一天的实际值列表
-y_pred_values_day3 = y_pred_day3 # 第一天的预测值列表
-y_true_values_day3 = y_test_day3  # 第一天的实际值列表
-y_pred_values_day4 = y_pred_day4 # 第一天的预测值列表
-y_true_values_day4 = y_test_day4  # 第一天的实际值列表
+
 
 # 修改画图函数，将图表转置，并使实际值的线平滑，减小实际值点的大小
 
@@ -157,8 +144,7 @@ def plot_values_on_heights_transposed(heights, y_pred_values, y_true_values, tit
 # 使用修改后的函数画出各天的数据
 plot_values_on_heights_transposed(heights, y_pred_values_day1, y_true_values_day1, 'Day 1 ')
 plot_values_on_heights_transposed(heights, y_pred_values_day2, y_true_values_day2, 'Day 2')
-plot_values_on_heights_transposed(heights, y_pred_values_day3, y_true_values_day3, 'Day 3 ')
-plot_values_on_heights_transposed(heights, y_pred_values_day4, y_true_values_day4, 'Day 4 ')
+
 
 import numpy as np
 import matplotlib.pyplot as plt
